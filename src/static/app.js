@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
           <p><strong>Participants:</strong></p>
           <ul class="participants-list">
-            ${details.participants.length > 0 ? details.participants.map(p => `<li>${p}</li>`).join('') : '<li>No participants yet.</li>'}
+            ${details.participants.length > 0 ? details.participants.map(p => `<li>${p} <button class="delete-btn" data-activity="${name}" data-email="${p}" title="Unregister">×</button></li>`).join('') : '<li>No participants yet.</li>'}
           </ul>
         `;
 
@@ -44,6 +44,33 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error("Error fetching activities:", error);
     }
   }
+
+  // Event listener for delete buttons
+  activitiesList.addEventListener('click', async (event) => {
+    if (event.target.classList.contains('delete-btn')) {
+      const activity = event.target.dataset.activity;
+      const email = event.target.dataset.email;
+
+      try {
+        const response = await fetch(
+          `/activities/${encodeURIComponent(activity)}/unregister?email=${encodeURIComponent(email)}`,
+          { method: 'POST' }
+        );
+
+        const result = await response.json();
+
+        if (response.ok) {
+          // Refresh activities
+          fetchActivities();
+        } else {
+          alert(result.detail || 'Error unregistering');
+        }
+      } catch (error) {
+        alert('Failed to unregister');
+        console.error(error);
+      }
+    }
+  });
 
   // Handle form submission
   signupForm.addEventListener("submit", async (event) => {
